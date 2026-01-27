@@ -21,11 +21,11 @@ subscriptions = float(input("Spent on subscriptions?  "))
 
 # Calculations
 spent = car_payment + retirement + groceries + gym_membership + subscriptions
-remaining = monthly_income - car_payment + retirement + groceries + gym_membership + subscriptions
-percent = (car_payment + retirement + groceries + gym_membership + subscriptiosn)/monthly_income
+remaining = monthly_income - car_payment - retirement - groceries - gym_membership - subscriptions
+percent = spent/monthly_income * 100
 
 # Formatted Output
 print(f"You receive {monthly_income: ,.2f}")
 print(f"You spend {spent: ,.2f} a month")
-print(f"You have ")
-print(f"")
+print(f"You have {remaining: ,.2f} left")
+print(f"You spent {percent:.2f}% on expenses")
