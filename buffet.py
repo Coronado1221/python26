@@ -19,10 +19,10 @@ age = int(input("How old are you? "))
 
 # Printed Variables 
 if age < 1:
-    print("You eat free.")
+    print("Your total is $0.00")
 elif age < 12:
     print(f"Your total is ${1*age:.2f}")
 elif age < 65:
     print("Your total is $16.95")
-elif age > 65:
+else :
     print("Your total is $12.95")
