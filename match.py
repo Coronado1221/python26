@@ -22,7 +22,6 @@ while True:
         print(f"Total: ${Total:,.2f}")
     elif choice == 2:
         deposit = int(input("Amount to deposit?  "))
-<<<<<<< HEAD
         Total += deposit 
         print(f"Total: ${Total:,.2f}")
     elif choice == 3:
@@ -39,13 +38,7 @@ while True:
         else: print("insufficient funds")
     else:
         print("I'm sorry that is not a valid menu number")
-=======
-        print(f"Total: ${Total+deposit:,.2f}")
-    elif choice == 3:
-        withdraw = int(input("Amount to withdraw?"))
-        if withdraw > 1000:
-            else print ("Insufficient funds")
-            print(f"Total: ${Total-withdraw:,.2f}")
+
              
              
 
