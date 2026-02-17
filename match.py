@@ -39,17 +39,4 @@ while True:
     else:
         print("I'm sorry that is not a valid menu number")
 
-             
-             
 
-
-    
-
-    
-          
-
-
-
-
-
->>>>>>> 7b9c255b5f75f691531541fb3058ca8dc38198c8
