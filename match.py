@@ -38,5 +38,3 @@ while True:
         else: print("insufficient funds")
     else:
         print("I'm sorry that is not a valid menu number")
-
-
