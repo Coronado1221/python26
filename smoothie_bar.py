@@ -14,7 +14,6 @@ ASSIGNMENT 9A: THE SMOOTHIE SPRINT
 # GLOBAL CONSTANTS (The Pantry)
 BASES = ("Water", "Apple Juice", "Orange Juice", "Milk")
 FRUITS = ("Strawberry", "Banana", "Mango", "Blueberry")
-EXTRAS = ("Protein Powder", "Yogurt", "Chia Seeds")
 
 def get_price(size):
     if size == "Small":
@@ -24,12 +23,12 @@ def get_price(size):
     else:
         return 5.00
 
-def blend(size, base, fruit, extra): 
+def blend(size, base, fruit, scoops): 
     print("Blending Smoothie")
     print(f"Size: {size}")
     print(f"Base: Smoothie with {base} base.")
     print(f"Flavor: Smoothie with {fruit} flavor.")
-    print(f"Extras: Smoothie with {extra} additions.")
+    print(f"Scoops: Smoothie with {scoops} scoops of protein powder.")
 
 def main():
     print("Welcome to the Smoothie Shop")
@@ -37,17 +36,18 @@ def main():
     choice_size = input("Size (Small/Medium/Large): ").title().strip()
     choice_base = input("Select base: ")
     choice_fruit = input("Select fruit: ")
-    choice_extra = input("Select extra: ")
     
     try:
-        packets = int(input("How many scoops of protein? "))
+        packets = int(input("How many scoops of protein powder? "))
     except ValueError:
         print("Invalid entry. Defaulting to 1.")
         packets = 1
 
-    cost = get_base_price(choice_size)
+    cost = get_price(choice_size)
 
-    blend_smoothie(choice_size, choice_base, choice_fruit, choice extra)
+    blend(choice_size, choice_base, choice_fruit, packets)
 
     print(f"Total Bill: ${cost:.2f}")
+
+main()
 
