@@ -48,7 +48,7 @@ def save_data_and_report(user, productivity_rates):
     print(f"Improved Productivity: {improved}%")
 
 def main():
-    # 1. Indentity Phase
+    # 1. Identity Phase
     name, hours = get_user_info()
 
     # 2. Data Collection Phase
