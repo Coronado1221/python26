@@ -15,6 +15,10 @@ TASK_LIST_FILE = os.path.join(BASE_DIR, "..", "tasks.txt")
 DATA_FILE = os.path.join(BASE_DIR, "..", "data", "productivity_log.txt")
 USERS_FILE = os.path.join(BASE_DIR, "..", "data", "users.json")
 
+# Task categorization
+PRODUCTIVE_TASKS = {"Work", "Homework", "Exercise", "Productive Other"}
+DISTRACTED_TASKS = {"Screen Time", "Social", "Distracted Other"}
+
 # --- User Class and Helpers ---
 class User:
     def __init__(self, user_id: int, name: str, nickname: Optional[str] = None):
@@ -64,20 +68,24 @@ def register_or_get_user(name: str, nickname: Optional[str] = None):
 
 # --- ProductivityEntry Model ---
 class ProductivityEntry:
-    def __init__(self, name, task, current=0, improved=0):
+    def __init__(self, name, task_hours: dict):
+        # task_hours: {"Work": 2.5, "Screen Time": 1.0, ...}
         self.name = name
-        self.task = task
-        self.current = current
-        self.improved = improved
-    def set_task(self, new_task):
-        self.task = new_task
-    def set_scores(self, current, improved):
-        self.current = current
-        self.improved = improved
-    def get_summary(self):
-        return (f"USER: {self.name}\n"
-                f"TASK: {self.task}\n"
-                f"STATS: {self.current}% Efficiency | {self.improved}% Potential")
+        self.task_hours = task_hours
+        self.productive_hours = sum(hours for task, hours in task_hours.items() if task in PRODUCTIVE_TASKS)
+        self.distracted_hours = sum(hours for task, hours in task_hours.items() if task in DISTRACTED_TASKS)
+    
+    def get_efficiency(self):
+        total = self.productive_hours + self.distracted_hours
+        if total == 0:
+            return 0
+        return round((self.productive_hours / total) * 100)
+    
+    def get_potential(self):
+        total = self.productive_hours + min(self.distracted_hours, 2)
+        if total == 0:
+            return 0
+        return round((self.productive_hours / total) * 100)
 
 # --- Helper Functions ---
 def load_tasks():
@@ -89,25 +97,21 @@ def load_tasks():
 
 def load_user_entries(user_name):
     try:
-        df = pd.read_csv(DATA_FILE, names=["timestamp", "name", "task", "current", "improved"])
+        df = pd.read_csv(DATA_FILE, names=["timestamp", "name", "task", "category", "hours"])
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
         return df[df["name"].str.lower() == user_name.lower()]
     except Exception:
-        return pd.DataFrame(columns=["timestamp", "name", "task", "current", "improved"])
+        return pd.DataFrame(columns=["timestamp", "name", "task", "category", "hours"])
 
 def save_entry(entry_obj):
     os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    with open(DATA_FILE, "a") as f:
-        f.write(f"{timestamp},{entry_obj.name},{entry_obj.task},{entry_obj.current},{entry_obj.improved}\n")
-
-def calculate_rates(p_hours, d_hours):
-    total = p_hours + d_hours
-    if total == 0:
-        return 0, 0
-    current = round((p_hours / total) * 100)
-    improved = round((p_hours / (p_hours + min(d_hours, 2))) * 100)
-    return current, improved
+    # Store each task hour as a separate entry
+    for task, hours in entry_obj.task_hours.items():
+        if hours > 0:
+            category = "Productive" if task in PRODUCTIVE_TASKS else "Distracted"
+            with open(DATA_FILE, "a") as f:
+                f.write(f"{timestamp},{entry_obj.name},{task},{category},{hours}\n")
 
 def get_efficiency_emoji(eff):
     if eff >= 90:
@@ -174,16 +178,28 @@ user = st.session_state['user'] if st.session_state['logged_in'] else None
 if user:
     st.success(f"Hello, {user.nickname}! 👋 (ID: {user.id})")
     tasks = load_tasks()
-    task_choice = st.selectbox("Select a task:", tasks)
-    p_hours = st.number_input("Productive hours:", min_value=0.0, step=0.5)
-    d_hours = st.number_input("Distracted hours:", min_value=0.0, step=0.5)
-    if st.button("Add Entry ✍️"):
-        curr, imp = calculate_rates(p_hours, d_hours)
-        entry = ProductivityEntry(name=user.name, task=task_choice, current=curr, improved=imp)
-        save_entry(entry)
-        st.balloons()
-        emoji = get_efficiency_emoji(curr)
-        st.success(f"Entry saved! {emoji} {curr}% Efficiency | {imp}% Potential")
+    
+    # New form: Input hours for each task
+    st.subheader("📝 Log Your Hours")
+    task_hours = {}
+    cols = st.columns(2)
+    for idx, task in enumerate(tasks):
+        col = cols[idx % 2]
+        with col:
+            hours = st.number_input(f"{task}:", min_value=0.0, step=0.5, key=f"task_{task}")
+            task_hours[task] = hours
+    
+    if st.button("Log Hours ✍️"):
+        if sum(task_hours.values()) > 0:
+            entry = ProductivityEntry(name=user.name, task_hours=task_hours)
+            save_entry(entry)
+            st.balloons()
+            eff = entry.get_efficiency()
+            pot = entry.get_potential()
+            emoji = get_efficiency_emoji(eff)
+            st.success(f"Entry saved! {emoji} {eff}% Efficiency | {pot}% Potential")
+        else:
+            st.warning("Please log at least some hours!")
 
     # Show user history with filters
     data = load_user_entries(user.name)
@@ -198,48 +214,57 @@ if user:
         start_date = date_range[0] if date_range else None
         end_date = date_range[1] if len(date_range) > 1 else None
         filtered = filter_history(data, task=task_filter, start_date=start_date, end_date=end_date)
-        st.dataframe(filtered[["timestamp", "task", "current", "improved"]].sort_values("timestamp", ascending=False))
-        st.write(f"Average Efficiency: {filtered['current'].mean():.1f}% {get_efficiency_emoji(filtered['current'].mean() if not filtered.empty else 0)}")
-        st.write(f"Best Potential: {filtered['improved'].max() if not filtered.empty else 0}% 🌟")
-        st.line_chart(filtered.set_index("timestamp")["current"])
-        st.bar_chart(filtered.set_index("timestamp")["improved"])
-        # Pie chart for task proportions
+        
+        # Display entries by category
+        st.write("**Logged Hours by Category:**")
+        st.dataframe(filtered[["timestamp", "task", "category", "hours"]].sort_values("timestamp", ascending=False))
+        
+        # Calculate stats
+        productive_hours = filtered[filtered["category"] == "Productive"]["hours"].sum()
+        distracted_hours = filtered[filtered["category"] == "Distracted"]["hours"].sum()
+        total_hours = productive_hours + distracted_hours
+        
+        if total_hours > 0:
+            efficiency = round((productive_hours / total_hours) * 100)
+            potential = round((productive_hours / (productive_hours + min(distracted_hours, 2))) * 100)
+        else:
+            efficiency = 0
+            potential = 0
+        
+        st.write(f"**Productivity Stats:**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Productive Hours", f"{productive_hours:.1f}h")
+        with col2:
+            st.metric("Distracted Hours", f"{distracted_hours:.1f}h")
+        with col3:
+            emoji = get_efficiency_emoji(efficiency)
+            st.metric("Efficiency", f"{efficiency}% {emoji}")
+        
+        st.write(f"Potential Efficiency: {potential}% 🌟")
+        
+        # Bar chart for hours by task
         if not filtered.empty:
-            st.subheader("🧩 Time Spent per Task")
-            pie_data = filtered["task"].value_counts()
-            st.bar_chart(pie_data)
+            st.subheader("📊 Hours by Task")
+            task_hours_sum = filtered.groupby("task")["hours"].sum().sort_values(ascending=False)
+            st.bar_chart(task_hours_sum)
 
         # --- Recent Orders (Entries) ---
         st.sidebar.subheader("🕑 Recent Entries")
-        recent = data.sort_values("timestamp", ascending=False).head(5)
+        recent = data.sort_values("timestamp", ascending=False).head(10)
         for idx, row in recent.iterrows():
-            st.sidebar.write(f"{row['timestamp'].strftime('%Y-%m-%d %H:%M')} | {row['task']} | {row['current']}%")
+            st.sidebar.write(f"{row['timestamp'].strftime('%Y-%m-%d %H:%M')} | {row['task']} | {row['hours']:.1f}h")
 
         # --- Edit/Delete Most Recent Entry ---
         if not data.empty:
             most_recent_idx = data["timestamp"].idxmax()
             most_recent = data.loc[most_recent_idx]
             st.sidebar.markdown("---")
-            st.sidebar.write(f"Most Recent: {most_recent['timestamp'].strftime('%Y-%m-%d %H:%M')} | {most_recent['task']} | {most_recent['current']}%")
+            st.sidebar.write(f"Most Recent: {most_recent['timestamp'].strftime('%Y-%m-%d %H:%M')} | {most_recent['task']} | {most_recent['hours']:.1f}h")
             edit = st.sidebar.button("✏️ Edit Most Recent")
             delete = st.sidebar.button("🗑️ Delete Most Recent")
             if edit:
-                with st.form("edit_form"):
-                    new_task = st.selectbox("Edit task:", tasks, index=tasks.index(most_recent['task']) if most_recent['task'] in tasks else 0)
-                    new_p = st.number_input("Edit productive hours:", min_value=0.0, value=float(most_recent['current']), step=0.5)
-                    new_d = st.number_input("Edit distracted hours:", min_value=0.0, value=0.0, step=0.5)
-                    submitted = st.form_submit_button("Save Changes")
-                    if submitted:
-                        # Update entry in file
-                        df = pd.read_csv(DATA_FILE, names=["timestamp", "name", "task", "current", "improved"])
-                        df.loc[most_recent_idx, "task"] = new_task
-                        df.loc[most_recent_idx, "current"] = new_p
-                        # Recalculate improved
-                        _, new_imp = calculate_rates(new_p, new_d)
-                        df.loc[most_recent_idx, "improved"] = new_imp
-                        df.to_csv(DATA_FILE, header=False, index=False)
-                        st.success("Most recent entry updated!")
-                        st.experimental_rerun()
+                st.sidebar.info("Edit functionality coming soon!")
             if delete:
                 if st.sidebar.confirm("Are you sure you want to delete your most recent entry?", key="delete_confirm"):
                     df = pd.read_csv(DATA_FILE, names=["timestamp", "name", "task", "current", "improved"])
