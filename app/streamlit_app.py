@@ -173,6 +173,12 @@ if theme == "Dark":
         input::placeholder {
             color: #888888 !important;
         }
+        label {
+            color: #ffffff !important;
+        }
+        button {
+            color: #ffffff !important;
+        }
         </style>
     """, unsafe_allow_html=True)
 
