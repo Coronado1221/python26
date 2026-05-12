@@ -142,7 +142,34 @@ theme = st.sidebar.radio("Theme", ["Light", "Dark"])
 if theme == "Dark":
     st.markdown("""
         <style>
-        body, .stApp { background-color: #222; color: #eee; }
+        body, .stApp { 
+            background-color: #1e1e1e; 
+            color: #ffffff; 
+        }
+        .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6 {
+            color: #ffffff !important;
+        }
+        .stMetric {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .stMetricValue {
+            color: #ffffff !important;
+        }
+        .stMetricLabel {
+            color: #cccccc !important;
+        }
+        .stDataFrame {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        input, textarea, select {
+            background-color: #2d2d2d;
+            color: #ffffff !important;
+            border-color: #444 !important;
+        }
         </style>
     """, unsafe_allow_html=True)
 
