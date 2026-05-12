@@ -11,7 +11,7 @@ st.write('App loaded')
 
 # --- CONSTANTS ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TASK_LIST_FILE = os.path.join(BASE_DIR, "..", "data", "tasks.txt")
+TASK_LIST_FILE = os.path.join(BASE_DIR, "..", "tasks.txt")
 DATA_FILE = os.path.join(BASE_DIR, "..", "data", "productivity_log.txt")
 USERS_FILE = os.path.join(BASE_DIR, "..", "data", "users.json")
 
@@ -207,7 +207,7 @@ if user:
         if not filtered.empty:
             st.subheader("🧩 Time Spent per Task")
             pie_data = filtered["task"].value_counts()
-            st.pyplot(pie_data.plot.pie(autopct="%1.0f%%", ylabel="").get_figure())
+            st.bar_chart(pie_data)
 
         # --- Recent Orders (Entries) ---
         st.sidebar.subheader("🕑 Recent Entries")
