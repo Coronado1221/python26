@@ -1,10 +1,13 @@
 # --- User Management ---
+
 import json
 import os
 from typing import Optional
 import streamlit as st
 import datetime
 import pandas as pd
+
+st.write('App loaded')
 
 # --- CONSTANTS ---
 TASK_LIST_FILE = "data/tasks.txt"
