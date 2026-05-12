@@ -7,9 +7,9 @@ import datetime
 import pandas as pd
 
 # --- CONSTANTS ---
-TASK_LIST_FILE = "../data/tasks.txt"
-DATA_FILE = "../data/productivity_log.txt"
-USERS_FILE = "../data/users.json"
+TASK_LIST_FILE = "data/tasks.txt"
+DATA_FILE = "data/productivity_log.txt"
+USERS_FILE = "data/users.json"
 
 # --- User Class and Helpers ---
 class User:
