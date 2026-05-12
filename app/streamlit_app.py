@@ -167,7 +167,7 @@ with st.sidebar:
             user = register_or_get_user(name, nickname if nickname else None)
             st.session_state['user'] = user
             st.session_state['logged_in'] = True
-            st.experimental_rerun()
+            st.rerun()
 
 user = st.session_state['user'] if st.session_state['logged_in'] else None
 
