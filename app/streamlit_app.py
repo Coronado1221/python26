@@ -174,10 +174,10 @@ if theme == "Dark":
             color: #888888 !important;
         }
         label {
-            color: #ffffff !important;
+            color: #64B5F6 !important;
         }
         button {
-            color: #ffffff !important;
+            color: #64B5F6 !important;
         }
         </style>
     """, unsafe_allow_html=True)
