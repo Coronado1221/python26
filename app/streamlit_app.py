@@ -167,8 +167,11 @@ if theme == "Dark":
         }
         input, textarea, select {
             background-color: #2d2d2d;
-            color: #ffffff !important;
+            color: #64B5F6 !important;
             border-color: #444 !important;
+        }
+        input::placeholder {
+            color: #888888 !important;
         }
         </style>
     """, unsafe_allow_html=True)
