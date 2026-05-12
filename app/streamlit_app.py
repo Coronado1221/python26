@@ -10,9 +10,10 @@ import pandas as pd
 st.write('App loaded')
 
 # --- CONSTANTS ---
-TASK_LIST_FILE = "data/tasks.txt"
-DATA_FILE = "data/productivity_log.txt"
-USERS_FILE = "data/users.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TASK_LIST_FILE = os.path.join(BASE_DIR, "..", "data", "tasks.txt")
+DATA_FILE = os.path.join(BASE_DIR, "..", "data", "productivity_log.txt")
+USERS_FILE = os.path.join(BASE_DIR, "..", "data", "users.json")
 
 # --- User Class and Helpers ---
 class User:
@@ -35,6 +36,7 @@ def load_users():
         return [User.from_dict(u) for u in json.load(f)]
 
 def save_users(users):
+    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
     with open(USERS_FILE, "w") as f:
         json.dump([u.to_dict() for u in users], f, indent=2)
 
@@ -94,6 +96,7 @@ def load_user_entries(user_name):
         return pd.DataFrame(columns=["timestamp", "name", "task", "current", "improved"])
 
 def save_entry(entry_obj):
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     with open(DATA_FILE, "a") as f:
         f.write(f"{timestamp},{entry_obj.name},{entry_obj.task},{entry_obj.current},{entry_obj.improved}\n")
